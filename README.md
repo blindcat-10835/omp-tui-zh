@@ -9,10 +9,12 @@
 ### 方式一：从 git 仓库安装（推荐，可在 Settings → 插件 中管理）
 
 ```sh
-omp plugin install github:<你的用户名>/tui-zh
-# 或指定 tag/分支
-omp plugin install github:<你的用户名>/tui-zh#v1.0.0
+omp plugin install https://git.codehub.xfusion.com/PureAI/omp-tui-zh.git
 ```
+
+> CodeHub 私有仓库：`bun install` 经 git 拉取，需本机 git 凭据可用
+> （`~/.git-credentials` 或 credential helper 已存 `git.codehub.xfusion.com` 的凭据）。
+> `github:user/repo` 简写仅适用于 GitHub，私有 Git 源请使用完整 URL。
 
 安装后插件出现在 `~/.omp/plugins/node_modules/@oh-my-pi/tui-zh/`，
 设置面板的 **插件** 标签页中可启用/禁用。
