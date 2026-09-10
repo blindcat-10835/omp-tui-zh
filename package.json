@@ -1,0 +1,14 @@
+{
+	"name": "@oh-my-pi/tui-zh",
+	"version": "1.0.0",
+	"description": "TUI 简体中文汉化插件 — 将设置面板和界面文案替换为简体中文",
+	"type": "module",
+	"omp": {
+		"extensions": [
+			"./index.ts"
+		]
+	},
+	"peerDependencies": {
+		"@oh-my-pi/pi-coding-agent": "*"
+	}
+}
