@@ -3,6 +3,10 @@
 	"version": "1.0.0",
 	"description": "TUI 简体中文汉化插件 — 将设置面板和界面文案替换为简体中文",
 	"type": "module",
+	"scripts": {
+		"sync:check": "bun scripts/sync-check.ts check",
+		"sync:build": "bun scripts/sync-check.ts build"
+	},
 	"omp": {
 		"extensions": [
 			"./index.ts"

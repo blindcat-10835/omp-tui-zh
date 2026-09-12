@@ -104,8 +104,9 @@ export default function (pi: ExtensionAPI): void {
 			...commandsStrings, // 命令
 		},
 	});
-	// prompt 模板汉化:用 `full` override 把宿主内置模板替换为随插件打包的简体中文
-	// 字节级副本。index.ts 仍是唯一顶层入口,模板由 ./prompts/prompts 静态导入。
+	// prompt 模板汉化:用 `transform` override 对宿主内置英文模板做块级中文合并
+	// (命中 translations.json 的块替换为中文,未命中块保留英文)。index.ts 仍是唯一顶层
+	// 入口,映射由 ./prompts/prompts 静态导入。
 	const promptHost = pi as ExtensionAPI & PromptOverrideHost;
 	if (typeof promptHost.registerPromptOverrides === "function") {
 		promptHost.registerPromptOverrides({ overrides: promptOverrides });

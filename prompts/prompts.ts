@@ -1,19 +1,19 @@
 /**
  * Prompt override 资源桶（barrel）。
  *
- * 将本插件自带的简体中文 prompt 模板打包为 `full` override 数组，供
+ * 将本插件的简体中文 prompt 翻译打包为 `transform` override 数组,供
  * `../index.ts` 唯一入口静态导入后调用 `pi.registerPromptOverrides`。
  *
- * 模板以 `import ... with { type: "text" }` 在顶层内联（Bun 原生文本导入，
- * 与主包 `agents.ts` 内嵌 `src/prompts/*.md` 完全同一机制），不引入任何
- * 运行时 readFile。每个 `.md` 文件都是 `src/prompts/` 对应已提交中文模板的
- * 字节级副本，保留全部 Handlebars 变量、XML 标签、代码块与动态占位符——
- * 因此注册后 `resolvePromptSource` 返回的就是这套已验证的中文内容。
+ * 机制:上游英文模板按"空行分块"拆分,每块以规范化后的 EN 内容为键,
+ * 在 `translations.json` 中查找中文译文。命中则整块替换为中文;未命中
+ * (上游新增/重写的块)则原样保留英文——绝不静默错译,漂移块由
+ * `scripts/sync-check.ts` 检出并报告。
  *
- * 本目录不含 `package.json`/`index.ts`，不会被 extension loader 扫描为顶层
- * 入口；只由 `../index.ts` 间接加载。
+ * 翻译映射 `./translations.json` 由 `scripts/sync-check.ts build` 从
+ * (上游英文基线, 随插件冻结的中文模板 `prompts/*.md`) 生成,已提交入库。
+ * `prompts/*.md` 保留为人类可读的冻结参考副本,运行时不再直接加载。
  *
- * 覆盖的 prompt id（与宿主 `resolvePromptSource` 调用点一一对应）：
+ * 覆盖的 prompt id(与宿主 `resolvePromptSource` 调用点一一对应):
  *   - `system`                  src/prompts/system/system-prompt.md
  *   - `subagent.system`         src/prompts/system/subagent-system-prompt.md
  *   - `subagent.yieldReminder`  src/prompts/system/subagent-yield-reminder.md
@@ -22,37 +22,36 @@
  *   - `agent.scout`             src/prompts/agents/scout.md
  *   - `agent.reviewer`         src/prompts/agents/reviewer.md
  *   - `agent.security-reviewer` src/prompts/agents/security-reviewer.md
- *   - `agent.sonic`             与 `agent.task` 共用 task.md（额外覆盖，见 index.ts）
+ *   - `agent.sonic`             与 `agent.task` 共用映射(额外覆盖,见 index.ts)
  */
 
-import systemPrompt from "./system-prompt.md" with { type: "text" };
-import subagentSystemPrompt from "./subagent-system-prompt.md" with { type: "text" };
-import subagentYieldReminder from "./subagent-yield-reminder.md" with { type: "text" };
-import subagentAsyncPending from "./subagent-async-pending.md" with { type: "text" };
-import agentTask from "./agent-task.md" with { type: "text" };
-import agentScout from "./agent-scout.md" with { type: "text" };
-import agentReviewer from "./agent-reviewer.md" with { type: "text" };
-import agentSecurityReviewer from "./agent-security-reviewer.md" with { type: "text" };
+import { buildBlockMaps, mergeTemplateWithMap, type TranslationEntries } from "../src/prompt-map";
+import translationsJson from "../src/translations.json" with { type: "json" };
 
-/** 单个 prompt override（结构上满足宿主 `PromptOverride`）。 */
+const translations = translationsJson as unknown as TranslationEntries;
+
+/** 单个 prompt override(结构上满足宿主 `PromptOverride`)。 */
 export interface ZhPromptOverride {
 	readonly id: string;
-	readonly full: string;
+	readonly transform?: (source: string) => string;
 }
 
+/** 已编译的 id -> 块级翻译映射。 */
+const maps: Record<string, ReadonlyMap<string, string>> = buildBlockMaps(translations);
+
 /**
- * 本插件注册的 prompt override 列表。均为 `full`（完整替换模板）：
- * 在 `resolvePromptSource` 命中后逐字返回，再由 `prompt.render` 走
- * Handlebars + 后处理，保留所有变量与动态占位符。
+ * 本插件注册的 prompt override 列表。全部使用 `transform`:
+ * 接收上游英文模板,按块查 `translations.json` 映射,命中块替换为中文,
+ * 未命中块保留英文,再交由宿主 `prompt.render` 走 Handlebars + 后处理。
  */
 export const promptOverrides: ZhPromptOverride[] = [
-	{ id: "system", full: systemPrompt },
-	{ id: "subagent.system", full: subagentSystemPrompt },
-	{ id: "subagent.yieldReminder", full: subagentYieldReminder },
-	{ id: "subagent.asyncPending", full: subagentAsyncPending },
-	{ id: "agent.task", full: agentTask },
-	{ id: "agent.sonic", full: agentTask },
-	{ id: "agent.scout", full: agentScout },
-	{ id: "agent.reviewer", full: agentReviewer },
-	{ id: "agent.security-reviewer", full: agentSecurityReviewer },
+	{ id: "system", transform: (s) => mergeTemplateWithMap(s, maps["system"]) },
+	{ id: "subagent.system", transform: (s) => mergeTemplateWithMap(s, maps["subagent.system"]) },
+	{ id: "subagent.yieldReminder", transform: (s) => mergeTemplateWithMap(s, maps["subagent.yieldReminder"]) },
+	{ id: "subagent.asyncPending", transform: (s) => mergeTemplateWithMap(s, maps["subagent.asyncPending"]) },
+	{ id: "agent.task", transform: (s) => mergeTemplateWithMap(s, maps["agent.task"]) },
+	{ id: "agent.sonic", transform: (s) => mergeTemplateWithMap(s, maps["agent.task"]) },
+	{ id: "agent.scout", transform: (s) => mergeTemplateWithMap(s, maps["agent.scout"]) },
+	{ id: "agent.reviewer", transform: (s) => mergeTemplateWithMap(s, maps["agent.reviewer"]) },
+	{ id: "agent.security-reviewer", transform: (s) => mergeTemplateWithMap(s, maps["agent.security-reviewer"]) },
 ];

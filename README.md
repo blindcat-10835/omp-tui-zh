@@ -33,8 +33,8 @@ omp plugin install https://git.codehub.xfusion.com/PureAI/omp-tui-zh.git
 - 各标签页分组标题（group.* 键，修复了宿主端转义模板导致键失配的回归）
 - 设置面板 chrome 文案（标题、搜索提示、底部提示语、匹配计数）
 - 一组完整设置项的 label/description
-- 系统提示词模板汉化（`registerPromptOverrides`，`full` 整段替换，保留全部 Handlebars 变量与占位符）
-- 内置 agent 提示词（task/scout/reviewer/security-reviewer）汉化
+- 系统提示词模板汉化（`registerPromptOverrides`，`transform` 块级合并：上游英文模板按空行分块，命中 `src/translations.json` 映射则整块替换为中文，未命中块原样保留英文——上游新增内容自动保留、重写的旧内容不会错译）
+- 内置 agent 提示词（task/scout/reviewer/security-reviewer/sonic）同机制汉化
 
 ## 扩展
 
@@ -80,7 +80,23 @@ export default function (pi: ExtensionAPI): void {
 - 插件禁用/重载时，其注册的文案会被清除
 - 对旧版本宿主（无 `registerPromptOverrides`）做了 `typeof` 守卫，提示词汉化静默跳过，UI 汉化不受影响
 
+## 提示词同步工作流
+
+上游英文模板变更后：
+
+```sh
+bun run sync:check            # 漂移检查：报告未覆盖的块（行号+原文），无漂移 exit 0
+```
+
+报告中的每个块是上游新增/重写的段落：
+
+1. 把译文补入 `src/translations.json`（键 = 规范化后的英文块内容，值 = 中文行数组；重复块键带 `#N` 后缀）；
+2. 或更新 `prompts/*.md` 冻结副本后 `bun run sync:build` 重新生成映射；
+3. 再跑 `sync:check` 确认零漂移。
+
+运行时行为保证：未翻译块保留英文（自动跟随上游新内容），已翻译块命中即替换——不会静默错译，也不会丢失上游更新。
+
 ## 兼容性
 
 - 需要 OMP 宿主提供 `ExtensionAPI.registerUiStrings`（18.x+）
-- 提示词模板为 `src/prompts/` 对应版本的字节级副本，宿主提示词结构大改时可能需要同步更新 `prompts/*.md`
+- 提示词翻译映射 `src/translations.json` 基于某次上游英文基线生成（`prompts/*.md` 为对应的冻结中文参考副本）；上游提示词变更时运行 `bun run sync:check` 检出漂移块，补译后重新生成
