@@ -30,6 +30,9 @@ const EN_FILES: Record<string, string> = {
 	"agent.scout": `${enDir}/agents/scout.md`,
 	"agent.reviewer": `${enDir}/agents/reviewer.md`,
 	"agent.security-reviewer": `${enDir}/agents/security-reviewer.md`,
+	"workflow-notice": `${enDir}/system/workflow-notice.md`,
+	"plan-mode-compact-instructions": `${enDir}/system/plan-mode-compact-instructions.md`,
+	"plan-mode-reference": `${enDir}/system/plan-mode-reference.md`,
 };
 
 let failed = 0;

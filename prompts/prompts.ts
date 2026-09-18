@@ -22,9 +22,11 @@
  *   - `agent.scout`             src/prompts/agents/scout.md
  *   - `agent.reviewer`         src/prompts/agents/reviewer.md
  *   - `agent.security-reviewer` src/prompts/agents/security-reviewer.md
+ *   - `workflow-notice`         src/prompts/system/workflow-notice.md
+ *   - `plan-mode-compact-instructions` src/prompts/system/plan-mode-compact-instructions.md
+ *   - `plan-mode-reference`     src/prompts/system/plan-mode-reference.md
  *   - `agent.sonic`             与 `agent.task` 共用映射(额外覆盖,见 index.ts)
  */
-
 import { buildBlockMaps, mergeTemplateWithMap, type TranslationEntries } from "../src/prompt-map";
 import translationsJson from "../src/translations.json" with { type: "json" };
 
@@ -54,4 +56,7 @@ export const promptOverrides: ZhPromptOverride[] = [
 	{ id: "agent.scout", transform: (s) => mergeTemplateWithMap(s, maps["agent.scout"]) },
 	{ id: "agent.reviewer", transform: (s) => mergeTemplateWithMap(s, maps["agent.reviewer"]) },
 	{ id: "agent.security-reviewer", transform: (s) => mergeTemplateWithMap(s, maps["agent.security-reviewer"]) },
+	{ id: "workflow-notice", transform: (s) => mergeTemplateWithMap(s, maps["workflow-notice"]) },
+	{ id: "plan-mode-compact-instructions", transform: (s) => mergeTemplateWithMap(s, maps["plan-mode-compact-instructions"]) },
+	{ id: "plan-mode-reference", transform: (s) => mergeTemplateWithMap(s, maps["plan-mode-reference"]) },
 ];

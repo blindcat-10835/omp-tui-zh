@@ -29,6 +29,9 @@ const IDS: Array<[id: string, enRel: string, zhRel: string]> = [
 	["agent.scout", "agents/scout.md", "prompts/agent-scout.md"],
 	["agent.reviewer", "agents/reviewer.md", "prompts/agent-reviewer.md"],
 	["agent.security-reviewer", "agents/security-reviewer.md", "prompts/agent-security-reviewer.md"],
+	["workflow-notice", "system/workflow-notice.md", "prompts/workflow-notice.md"],
+	["plan-mode-compact-instructions", "system/plan-mode-compact-instructions.md", "prompts/plan-mode-compact-instructions.md"],
+	["plan-mode-reference", "system/plan-mode-reference.md", "prompts/plan-mode-reference.md"],
 ];
 
 const ROOT = path.resolve(import.meta.dir, "..");
